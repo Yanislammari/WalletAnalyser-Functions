@@ -3,6 +3,8 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "node",
-    "DATABASE_URL": "xxxx"
+    "DATABASE_URL": "xxxx",
+    "MARKETSTACK_API_URL": "xxxx",
+    "MARKETSTACK_API_KEY": "xxxx"
   }
 }
