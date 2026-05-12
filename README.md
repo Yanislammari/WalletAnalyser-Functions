@@ -182,3 +182,48 @@ Hello, WalletAnalyser!
 ```
 
 ---
+
+### `SyncAssetPricesHttp`
+
+| Property | Value |
+|---|---|
+| **Type** | HTTP Trigger |
+| **Method** | GET, POST |
+| **Route** | `/api/SyncAssetPricesHttp` |
+| **Auth level** | Function |
+| **File** | `src/functions/SyncAssetPricesTrigger.ts` |
+
+**Description**
+
+Manually triggers the asset price synchronisation. Fetches the latest end-of-day prices for the configured number of assets from the Marketstack API and upserts them into the `AssetPrices` table. Useful for on-demand syncs or debugging without waiting for the scheduled timer.
+
+**Example request**
+
+```bash
+curl -X GET "http://localhost:7071/api/SyncAssetPricesHttp"
+```
+
+**Example response**
+
+```json
+{
+  "processedAt": "2026-05-11T04:20:00.000Z",
+  "message": "Asset prices synchronized successfully"
+}
+```
+
+---
+
+### `SyncAssetPricesTimer`
+
+| Property | Value |
+|---|---|
+| **Type** | Timer Trigger |
+| **Schedule** | `0 0 * * *` (every day at midnight UTC) |
+| **File** | `src/functions/SyncAssetPricesTimer.ts` |
+
+**Description**
+
+Scheduled job that runs automatically every day at midnight UTC. Performs the same price synchronisation as `SyncAssetPricesHttp` — fetches the latest prices from Marketstack and upserts them into the database. Requires Azurite (or a real Azure Storage connection) to manage timer state locally.
+
+---
