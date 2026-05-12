@@ -100,9 +100,8 @@ Create a `local.settings.json` (take `local.settings.json.example` for example) 
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "DATABASE_URL": "xxxx",
-    "AZURE_BLOB_STORAGE_CONNECTION_STRING": "xxxx",
-    "AZURE_BLOB_STORAGE_CONTAINER_NAME_TEMPLATES": "xxxx",
-    "AZURE_BLOB_STORAGE_CONTAINER_NAME_UPLOADS": "xxxx"
+    "MARKETSTACK_API_URL": "xxxx",
+    "MARKETSTACK_API_KEY": "xxxx"
   }
 }
 ```
