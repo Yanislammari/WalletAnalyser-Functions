@@ -1,6 +1,5 @@
-import { app, HttpRequest, HttpResponseInit, InvocationContext, Timer } from "@azure/functions";
+import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import SyncService from "../services/sync.service";
-import { ASSETS_LIMIT } from "../constants/const";
 
 const syncService: SyncService = new SyncService();
 
@@ -8,7 +7,7 @@ async function SyncAssetPricesTrigger(_req: HttpRequest, context: InvocationCont
   context.log("SyncAssetPricesTrigger triggered at", new Date().toISOString());
 
   try {
-    await syncService.syncAssetPrices(ASSETS_LIMIT);
+    await syncService.syncAssetPrices();
 
     return {
       status: 200,
@@ -20,6 +19,7 @@ async function SyncAssetPricesTrigger(_req: HttpRequest, context: InvocationCont
   }
   catch (error) {
     context.log("Error in SyncAssetPricesTrigger:", error);
+    
     return {
       status: 500,
       jsonBody: { error: String(error) }

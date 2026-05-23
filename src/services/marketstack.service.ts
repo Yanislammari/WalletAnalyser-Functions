@@ -1,5 +1,5 @@
 import { MARKETSTACK_API_KEY, MARKETSTACK_API_URL } from "../constants/env";
-import PriceResponse from "../models/price_response";
+import PriceResponse from "../models/price.response";
 
 class MarketstackService {
   private readonly apiKey: string;

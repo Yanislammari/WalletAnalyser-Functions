@@ -1,9 +1,9 @@
 import { Model, ModelStatic, FindOptions, UpdateOptions, WhereOptions, Sequelize } from "sequelize";
 import { getSequelize } from "../config/db";
 
-export abstract class BaseRepository<T extends Model> {
-  protected readonly sequelize: Sequelize;
+abstract class BaseRepository<T extends Model> {
   protected abstract readonly model: ModelStatic<T>;
+  protected readonly sequelize: Sequelize;
 
   constructor() {
     this.sequelize = getSequelize();
@@ -33,3 +33,5 @@ export abstract class BaseRepository<T extends Model> {
     await this.model.update(values, options);
   }
 }
+
+export default BaseRepository;
