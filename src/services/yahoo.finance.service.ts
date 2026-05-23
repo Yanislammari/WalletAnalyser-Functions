@@ -2,12 +2,7 @@ import YahooFinance from "yahoo-finance2";
 import { SYNC_CHUNK_SIZE, SYNC_CHUNK_DELAY_MS } from "../constants/chunk";
 import YahooPriceResponse from "../models/yahoo.price.response";
 import YahooQuote from "../models/yahoo.quote";
-
-interface YahooHistoricalRow {
-  date: Date;
-  close: number;
-  adjClose?: number;
-}
+import YahooHistoricalRow from "../models/yahoo.historical.raw";
 
 class YahooFinanceService {
   private readonly yahooFinance: InstanceType<typeof YahooFinance>;
