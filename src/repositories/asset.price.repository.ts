@@ -1,4 +1,4 @@
-import { fn, col, Op } from "sequelize";
+import { fn, col, Op, type CreationAttributes } from "sequelize";
 import BaseRepository from "./base.repository";
 import { AssetPrice } from "../models/schemas/asset.price";
 
@@ -48,14 +48,12 @@ class AssetPriceRepository extends BaseRepository<AssetPrice> {
     return result;
   }
 
-  public async bulkCreatePrices(
-    records: Array<{ asset_uuid: string; asset_price: number; asset_price_date: Date }>
-  ): Promise<void> {
+  public async bulkCreatePrices(records: Array<{ asset_uuid: string; asset_price: number; asset_price_date: Date }>): Promise<void> {
     if (records.length === 0) {
       return;
     }
 
-    await AssetPrice.bulkCreate(records as AssetPrice["_creationAttributes"][], {
+    await AssetPrice.bulkCreate(records as CreationAttributes<AssetPrice>[], {
       ignoreDuplicates: true,
     });
   }

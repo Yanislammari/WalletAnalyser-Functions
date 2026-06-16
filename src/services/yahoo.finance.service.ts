@@ -3,6 +3,11 @@ import { SYNC_CHUNK_SIZE, SYNC_CHUNK_DELAY_MS } from "../constants/chunk";
 import YahooPriceResponse from "../models/yahoo.price.response";
 import YahooQuote from "../models/yahoo.quote";
 import YahooHistoricalRow from "../models/yahoo.historical.raw";
+import YahooDividendRaw from "../models/yahoo.dividend.raw";
+
+interface YahooValidationError extends Error {
+  result?: unknown;
+}
 
 class YahooFinanceService {
   private readonly yahooFinance: InstanceType<typeof YahooFinance>;
@@ -26,23 +31,33 @@ class YahooFinanceService {
 
       const batch: string[] = chunks[i];
 
+      let rawQuotes: unknown;
+
       try {
-        const quotes: YahooQuote[] = await this.yahooFinance.quote(batch) as unknown as YahooQuote[];
-
-        for (const quote of quotes) {
-          if (!quote.symbol || quote.regularMarketPrice == null) {
-            continue;
-          }
-
-          results.set(quote.symbol, {
-            ticker: quote.symbol,
-            price: quote.regularMarketPrice,
-            date: quote.regularMarketTime ?? new Date(),
-          });
-        }
+        rawQuotes = await this.yahooFinance.quote(batch);
       }
       catch (err: unknown) {
-        throw new Error(`YahooFinanceService: error fetching batch ${i + 1}/${chunks.length} - ${err instanceof Error ? err.message : String(err)}`);
+        const validationErr = err as YahooValidationError;
+        if (validationErr.result != null) {
+          rawQuotes = validationErr.result;
+        }
+        else {
+          throw new Error(`YahooFinanceService: error fetching batch ${i + 1}/${chunks.length} - ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+
+      const quotes: YahooQuote[] = Array.isArray(rawQuotes) ? (rawQuotes as YahooQuote[]) : [];
+
+      for (const quote of quotes) {
+        if (!quote.symbol || quote.regularMarketPrice == null) {
+          continue;
+        }
+
+        results.set(quote.symbol, {
+          ticker: quote.symbol,
+          price: quote.regularMarketPrice,
+          date: quote.regularMarketTime ?? new Date(),
+        });
       }
     }
 
@@ -63,6 +78,43 @@ class YahooFinanceService {
         price: row.adjClose ?? row.close,
         date: row.date,
       }));
+  }
+
+  public async fetchHistoricalForexRates(baseCurrency: string, quoteCurrency: string, from: Date, to: Date): Promise<YahooPriceResponse[]> {
+    // Yahoo Finance ticker format for forex pairs: USDEUR=X means "1 USD = X EUR"
+    const ticker: string = `${baseCurrency.toUpperCase()}${quoteCurrency.toUpperCase()}=X`;
+    return this.fetchHistoricalPrices(ticker, from, to);
+  }
+
+  public async fetchLatestForexRate(baseCurrency: string, quoteCurrency: string): Promise<number | null> {
+    const ticker: string = `${baseCurrency.toUpperCase()}${quoteCurrency.toUpperCase()}=X`;
+
+    try {
+      const rawQuote: unknown = await this.yahooFinance.quote(ticker);
+      const price: number | undefined = (rawQuote as { regularMarketPrice?: number })?.regularMarketPrice;
+      return price ?? null;
+    }
+    catch (err: unknown) {
+      const validationErr = err as YahooValidationError;
+      if (validationErr.result != null) {
+        const results: unknown[] = Array.isArray(validationErr.result)
+          ? (validationErr.result as unknown[])
+          : [validationErr.result];
+        const price: number | undefined = (results[0] as { regularMarketPrice?: number })?.regularMarketPrice;
+        return price ?? null;
+      }
+      return null;
+    }
+  }
+
+  public async fetchHistoricalDividends(ticker: string, from: Date, to: Date): Promise<YahooDividendRaw[]> {
+    const rows: YahooDividendRaw[] = await this.yahooFinance.historical(ticker, {
+      period1: from,
+      period2: to,
+      events: "dividends",
+    }) as unknown as YahooDividendRaw[];
+
+    return rows.filter((row) => row.date != null && row.dividends != null && row.dividends > 0);
   }
 
   public chunk<T>(arr: T[], size: number): T[][] {
